@@ -19,7 +19,12 @@ export default function useAuth() {
             router.push('/logout');
           }
         }
-      } catch (error) {
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error(error.message);
+        } else {
+          console.error('An unknown error occurred');
+        }
         setIsAuthenticated(false);
       }
     };
@@ -34,7 +39,7 @@ export default function useAuth() {
     return () => {
       window.removeEventListener('authChange', checkAuth);
     };
-  }, []);
+  }, [router]);
 
   return isAuthenticated;
 }

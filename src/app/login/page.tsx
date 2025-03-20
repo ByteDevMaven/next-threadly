@@ -13,13 +13,18 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  const handleLogin = async (e: any) => {
+  interface LoginResponse {
+    ok: boolean
+    message?: string
+  }
+
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault()
     setError("")
     setIsLoading(true)
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response: Response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -31,10 +36,15 @@ const Login = () => {
         triggerAuthChange()
         router.push("/")
       } else {
-        const { message } = await response.json()
-        setError(message)
+        const { message }: LoginResponse = await response.json()
+        setError(message || "An error occurred.")
       }
-    } catch (error) {
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error(error.message)
+      } else {
+        console.error("An unknown error occurred.")
+      }
       setError("An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
@@ -131,7 +141,7 @@ const Login = () => {
           <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
             <div className="text-center">
               <p className="text-[#A1A6B4]">
-                Don't have an account?{" "}
+                Don&lsquo;t have an account?{" "}
                 <Link
                   href="/signup"
                   className="text-[#94C5CC] hover:text-[#000100] font-medium inline-flex items-center transition-colors"

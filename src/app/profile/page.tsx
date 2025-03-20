@@ -1,6 +1,8 @@
-"use client";
+"use client"
 
-import { useEffect, useState, useRef } from "react"
+import type React from "react"
+
+import { useEffect, useState, useRef, useCallback } from "react"
 import {
   User,
   Mail,
@@ -28,8 +30,17 @@ interface Discussion {
   user_id: number | string
 }
 
+interface UserProfileType {
+  id: number | string
+  name: string
+  email: string
+  password: string
+  created_at: string
+  updated_at?: string
+}
+
 export default function UserProfile() {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState<UserProfileType | null>(null)
   const [loading, setLoading] = useState(true)
   const [isEditing, setIsEditing] = useState(false)
   const [updateLoading, setUpdateLoading] = useState(false)
@@ -95,16 +106,10 @@ export default function UserProfile() {
     }
 
     fetchUserData()
-  }, [])
+  }, []) // Add empty dependency array here
 
-  useEffect(() => {
-    // Only fetch discussions when the discussions tab is active and we have a user
-    if (activeTab === "discussions" && user) {
-      fetchUserDiscussions()
-    }
-  }, [activeTab, user, currentPage])
-
-  const fetchUserDiscussions = async () => {
+  // Wrap fetchUserDiscussions in useCallback to prevent it from being recreated on every render
+  const fetchUserDiscussions = useCallback(async () => {
     if (!user) return
 
     setDiscussionsLoading(true)
@@ -145,9 +150,16 @@ export default function UserProfile() {
         setDiscussionsLoading(false)
       }
     }
-  }
+  }, [user]) // Only recreate when user changes
 
-  const handleInputChange = (e) => {
+  useEffect(() => {
+    // Only fetch discussions when the discussions tab is active and we have a user
+    if (activeTab === "discussions" && user) {
+      fetchUserDiscussions()
+    }
+  }, [activeTab, user, currentPage, fetchUserDiscussions])
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
@@ -155,7 +167,7 @@ export default function UserProfile() {
     }))
   }
 
-  const handleDiscussionInputChange = (e) => {
+  const handleDiscussionInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setDiscussionFormData((prev) => ({
       ...prev,
@@ -167,8 +179,8 @@ export default function UserProfile() {
     if (isEditing) {
       // Reset form data when canceling edit
       setFormData({
-        name: user.name || "",
-        email: user.email || "",
+        name: user?.name || "",
+        email: user?.email || "",
         password: "",
       })
     }
@@ -185,7 +197,7 @@ export default function UserProfile() {
     setDiscussionMessage({ text: "", type: "" })
   }
 
-  const updateUserInfo = async (e) => {
+  const updateUserInfo = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setUpdateLoading(true)
     setMessage({ text: "", type: "" })
@@ -237,7 +249,7 @@ export default function UserProfile() {
     }
   }
 
-  const createDiscussion = async (e) => {
+  const createDiscussion = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     // Validate form
@@ -256,8 +268,8 @@ export default function UserProfile() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_id: user.id,
-          author: user.name,
+          user_id: user?.id,
+          author: user?.name,
           title: discussionFormData.title,
           content: discussionFormData.content,
         }),
@@ -294,7 +306,7 @@ export default function UserProfile() {
   }
 
   // Format date to be more readable
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     if (!dateString) return "Unknown"
     try {
       return new Date(dateString).toLocaleDateString("en-US", {
@@ -302,7 +314,12 @@ export default function UserProfile() {
         month: "long",
         day: "numeric",
       })
-    } catch (e) {
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        console.error(e.message)
+      } else {
+        console.error(e)
+      }
       return dateString
     }
   }
@@ -338,7 +355,9 @@ export default function UserProfile() {
         <div className="container mx-auto px-4">
           <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-8 text-center">
             <h2 className="text-2xl font-bold text-[#000100] mb-4">User Not Found</h2>
-            <p className="text-[#A1A6B4] mb-6">We couldn't find your user profile. Please try logging in again.</p>
+            <p className="text-[#A1A6B4] mb-6">
+              We couldn&lsquo;t find your user profile. Please try logging in again.
+            </p>
             <Link
               href="/login"
               className="px-6 py-3 rounded-lg bg-[#000100] text-[#F8F8F8] font-medium hover:bg-[#A1A6B4] transition-colors duration-200"
@@ -363,21 +382,23 @@ export default function UserProfile() {
         {/* Tabs */}
         <div className="mb-8 border-b border-gray-200">
           <div className="flex space-x-8">
-            <button
+            <button type="button"
               onClick={() => setActiveTab("profile")}
-              className={`pb-4 px-1 font-medium ${activeTab === "profile"
+              className={`pb-4 px-1 font-medium ${
+                activeTab === "profile"
                   ? "text-[#000100] border-b-2 border-[#000100]"
                   : "text-[#A1A6B4] hover:text-[#000100]"
-                } transition-colors duration-200`}
+              } transition-colors duration-200`}
             >
               Profile
             </button>
-            <button
+            <button type="button"
               onClick={() => setActiveTab("discussions")}
-              className={`pb-4 px-1 font-medium ${activeTab === "discussions"
+              className={`pb-4 px-1 font-medium ${
+                activeTab === "discussions"
                   ? "text-[#000100] border-b-2 border-[#000100]"
                   : "text-[#A1A6B4] hover:text-[#000100]"
-                } transition-colors duration-200`}
+              } transition-colors duration-200`}
             >
               My Discussions
             </button>
@@ -390,8 +411,9 @@ export default function UserProfile() {
             {/* Message display */}
             {message.text && (
               <div
-                className={`mb-6 p-4 rounded-lg ${message.type === "error" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
-                  }`}
+                className={`mb-6 p-4 rounded-lg ${
+                  message.type === "error" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                }`}
               >
                 {message.text}
               </div>
@@ -411,7 +433,7 @@ export default function UserProfile() {
                   </div>
                 </div>
                 {!isEditing ? (
-                  <button
+                  <button type="button"
                     onClick={toggleEditMode}
                     className="px-4 py-2 rounded-lg bg-[#000100] text-[#F8F8F8] font-medium hover:bg-[#A1A6B4] transition-colors duration-200"
                   >
@@ -419,6 +441,8 @@ export default function UserProfile() {
                   </button>
                 ) : (
                   <button
+                    type="button"
+                    title="Cancel editing profile"
                     onClick={toggleEditMode}
                     className="p-2 rounded-full hover:bg-[#F8F8F8] transition-colors duration-200"
                   >
@@ -507,7 +531,7 @@ export default function UserProfile() {
                           className="w-full p-4 rounded-lg border border-[#A1A6B4] focus:outline-none focus:ring-2 focus:ring-[#94C5CC]"
                         />
                         <button
-                          type="button"
+                          type="button" title="Show Password"
                           className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#A1A6B4]"
                           onClick={() => setShowPassword(!showPassword)}
                         >
@@ -556,7 +580,7 @@ export default function UserProfile() {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-[#000100]">My Discussions</h2>
               {!isCreatingDiscussion && (
-                <button
+                <button type="button"
                   onClick={toggleCreateDiscussion}
                   className="px-4 py-2 rounded-lg bg-[#000100] text-[#F8F8F8] font-medium hover:bg-[#A1A6B4] transition-colors duration-200 flex items-center"
                 >
@@ -569,8 +593,9 @@ export default function UserProfile() {
             {/* Discussion Message */}
             {discussionMessage.text && (
               <div
-                className={`mb-6 p-4 rounded-lg ${discussionMessage.type === "error" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
-                  }`}
+                className={`mb-6 p-4 rounded-lg ${
+                  discussionMessage.type === "error" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700"
+                }`}
               >
                 {discussionMessage.text}
               </div>
@@ -585,6 +610,8 @@ export default function UserProfile() {
                     Create New Discussion
                   </h3>
                   <button
+                    type="button"
+                    title="Cancel creating discussion"
                     onClick={toggleCreateDiscussion}
                     className="p-2 rounded-full hover:bg-[#F8F8F8] transition-colors duration-200"
                   >
@@ -677,26 +704,28 @@ export default function UserProfile() {
                 {/* Pagination */}
                 {totalPages > 1 && (
                   <div className="flex justify-center items-center space-x-4 mt-8">
-                    <button
+                    <button type="button" title="Previous"
                       onClick={goToPrevPage}
                       disabled={currentPage === 1}
-                      className={`p-2 rounded-lg border ${currentPage === 1
+                      className={`p-2 rounded-lg border ${
+                        currentPage === 1
                           ? "border-gray-200 text-gray-300 cursor-not-allowed"
                           : "border-[#A1A6B4] text-[#A1A6B4] hover:bg-[#F8F8F8]"
-                        } transition-colors duration-200`}
+                      } transition-colors duration-200`}
                     >
                       <ChevronLeft size={20} />
                     </button>
                     <span className="text-[#A1A6B4]">
                       Page {currentPage} of {totalPages}
                     </span>
-                    <button
+                    <button type="button" title="Next"
                       onClick={goToNextPage}
                       disabled={currentPage === totalPages}
-                      className={`p-2 rounded-lg border ${currentPage === totalPages
+                      className={`p-2 rounded-lg border ${
+                        currentPage === totalPages
                           ? "border-gray-200 text-gray-300 cursor-not-allowed"
                           : "border-[#A1A6B4] text-[#A1A6B4] hover:bg-[#F8F8F8]"
-                        } transition-colors duration-200`}
+                      } transition-colors duration-200`}
                     >
                       <ChevronRight size={20} />
                     </button>
@@ -707,8 +736,8 @@ export default function UserProfile() {
               <div className="bg-white rounded-lg shadow-md p-8 text-center">
                 <MessageCircle size={40} className="mx-auto text-[#A1A6B4] mb-4" />
                 <h3 className="text-xl font-semibold text-[#000100] mb-2">No discussions yet</h3>
-                <p className="text-[#A1A6B4] mb-6">You haven't created any discussions yet.</p>
-                <button
+                <p className="text-[#A1A6B4] mb-6">You haven&lsquo;t created any discussions yet.</p>
+                <button type="button"
                   onClick={toggleCreateDiscussion}
                   className="px-6 py-3 rounded-lg bg-[#000100] text-[#F8F8F8] font-medium hover:bg-[#A1A6B4] transition-colors duration-200 inline-flex items-center"
                 >

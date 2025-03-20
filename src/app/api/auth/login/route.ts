@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import * as jwt from "jsonwebtoken";
-import cookie from "cookie";
+import * as cookie from "cookie";
 import bcrypt from "bcryptjs";
 
 const SECRET_KEY: string = process.env.NEXT_PUBLIC_JWT_SECRET || "";
@@ -48,7 +48,8 @@ export async function POST(request: Request) {
         );
 
         return response;
-    } catch (error: any) {
-        return NextResponse.json({ message: "Internal server error", error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        return NextResponse.json({ message: "Internal server error", error: errorMessage }, { status: 500 });
     }
 }

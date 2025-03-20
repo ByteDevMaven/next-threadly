@@ -79,9 +79,9 @@ export default function Discussions() {
                 } else if (isMounted.current) {
                     console.error("Error fetching discussions:", data.error)
                 }
-            } catch (error: any) {
+            } catch (error: unknown) {
                 // Only log errors if they're not from aborting and component is mounted
-                if (error.name !== "AbortError" && isMounted.current) {
+                if (error instanceof Error && error.name !== "AbortError" && isMounted.current) {
                     console.error("Error fetching discussions:", error)
                 }
             }
@@ -211,7 +211,7 @@ export default function Discussions() {
                 {/* End of discussions message */}
                 {filteredDiscussions.length > 0 && endOfDiscussions && (
                     <div className="mt-12 text-center text-[#A1A6B4]">
-                        <p>You've reached the end of the discussions</p>
+                        <p>You&lsquo;ve reached the end of the discussions</p>
                     </div>
                 )}
             </div>

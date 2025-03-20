@@ -49,7 +49,12 @@ function formatDate(dateString: string) {
       month: "short",
       day: "numeric",
     })
-  } catch (e) {
+  } catch (e: unknown) {
+    if (e instanceof Error) {
+      console.error(e.message);
+    } else {
+      console.error("An unknown error occurred:", e);
+    }
     return dateString
   }
 }

@@ -3,6 +3,19 @@ import { NextResponse } from "next/server";
 const API_URL = "https://script.google.com/macros/s/AKfycbxpnaqm3UoeUChFJNpqxmkK4Ku2wXzrppezwR5mJYkFSyldFz2PJ2uAYtTgj8yIZA/exec";
 const SHEET_ID = "1Rfapx_mxA-AAlRyz6NyJnwvelsLDZpzqbaWrvAP6XsE";
 
+interface User {
+    id: string,
+    name: string
+}
+
+interface Comment {
+    id: number | string
+    user_id: number | string
+    content: string
+    created_at: string
+    author: string
+}
+
 export async function GET(request: Request, context: { params: { id: string } }) {
     try {
         const { id } = await context.params; 
@@ -31,14 +44,14 @@ export async function GET(request: Request, context: { params: { id: string } })
 
         const usersMap = new Map();
         if (usersData.success) {
-            usersData.message.data.forEach((user: any) => {
+            usersData.message.data.forEach((user: User) => {
                 usersMap.set(user.id, user.name);
             });
         }
 
         // Attach `author` to comments
         const commentsWithAuthors = commentsData.success
-            ? commentsData.message.data.map((comment: any) => ({
+            ? commentsData.message.data.map((comment: Comment) => ({
                   ...comment,
                   author: usersMap.get(comment.user_id) || "Unknown",
               }))
@@ -50,8 +63,8 @@ export async function GET(request: Request, context: { params: { id: string } })
             comments: commentsWithAuthors,
         });
 
-    } catch (error) {
-        console.error("Error fetching discussion:", error);
-        return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });
+    }  catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        return NextResponse.json({ message: "Internal server error", error: errorMessage }, { status: 500 });
     }
 }

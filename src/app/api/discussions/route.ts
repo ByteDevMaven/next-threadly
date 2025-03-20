@@ -19,8 +19,9 @@ export async function GET(request: Request) {
         }
 
         return NextResponse.json({ success: true, data: data.message.data, page: data.message.page, totalPages: data.message.totalPages });
-    } catch (error) {
-        return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        return NextResponse.json({ message: "Internal server error", error: errorMessage }, { status: 500 });
     }
 }
 
@@ -60,8 +61,8 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true, discussion: newDiscussion }, { status: 201 });
 
-    } catch (error) {
-        console.error("Error creating discussion:", error);
-        return NextResponse.json({ success: false, error: "Server error" }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        return NextResponse.json({ message: "Internal server error", error: errorMessage }, { status: 500 });
     }
 }

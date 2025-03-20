@@ -45,7 +45,12 @@ export default function SignupPage() {
                 const data = await res.json()
                 setError(data.message || "An error occurred during signup")
             }
-        } catch (err) {
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                console.error(err.message);
+            } else {
+                console.error("An unknown error occurred.");
+            }
             setError("An unexpected error occurred. Please try again.")
         } finally {
             setIsLoading(false)

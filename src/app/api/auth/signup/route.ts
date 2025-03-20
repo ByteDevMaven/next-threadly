@@ -4,7 +4,7 @@ import bcrypt from "bcryptjs";
 
 export async function POST(request: Request) {
     try {
-        let { name, email, password } = await request.json();
+        const { name, email, password } = await request.json();
 
         // Check if the user already exists
         const userRes = await fetch(
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: "User already exists" }, { status: 409 });
         }
 
-        password = await bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
         // Create new user
         const newUser = {
@@ -26,7 +26,7 @@ export async function POST(request: Request) {
             id: uuidv4(),
             name,
             email,
-            password,
+            password: hashedPassword,
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
         };
@@ -49,7 +49,8 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({ message: "User created successfully" }, { status: 201 });
-    } catch (error: any) {
-        return NextResponse.json({ message: "Internal server error", error: error.message }, { status: 500 });
+    } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        return NextResponse.json({ message: "Internal server error", error: errorMessage }, { status: 500 });
     }
 }

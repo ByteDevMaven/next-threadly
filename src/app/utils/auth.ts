@@ -3,10 +3,15 @@ import * as cookie from 'cookie';
 
 const secret: string = process.env.NEXT_PUBLIC_JWT_SECRET || '';
 
-export function verifyToken(token) {
+export function verifyToken(token: string) {
   try {
     return jwt.verify(token, secret);
-  } catch (error) {
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error(error.message);
+    } else {
+      console.error('An unknown error occurred');
+    }
     return null;
   }
 }

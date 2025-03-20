@@ -71,9 +71,9 @@ export default function DiscussionDetails() {
                     setNotFound(true)
                     setLoading(false)
                 }
-            } catch (error: any) {
+            } catch (error: unknown) {
                 // Only log errors if they're not from aborting and component is mounted
-                if (error.name !== "AbortError" && isMounted.current) {
+                if (error instanceof Error && error.name !== "AbortError" && isMounted.current) {
                     console.error("Error fetching discussion:", error)
                     setNotFound(true)
                     setLoading(false)
@@ -144,7 +144,7 @@ export default function DiscussionDetails() {
         return (
             <div className="min-h-screen py-12 text-center">
                 <h1 className="text-4xl font-bold">Discussion Not Found</h1>
-                <p className="text-[#A1A6B4] mb-8">The discussion you're looking for doesn't exist.</p>
+                <p className="text-[#A1A6B4] mb-8">The discussion you&lsquo;re looking for doesn&lsquo;t exist.</p>
                 <Link href="/discussions" className="px-6 py-3 bg-[#000100] text-white rounded-lg">
                     Back to Discussions
                 </Link>
