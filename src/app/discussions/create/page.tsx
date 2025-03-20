@@ -7,7 +7,13 @@ import { PenSquare, Loader2, ArrowLeft } from "lucide-react"
 
 export default function CreateDiscussion() {
   const router = useRouter()
-  const [user, setUser] = useState(null)
+  interface User {
+    id: string;
+    name: string;
+    email: string;
+  }
+
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [createLoading, setCreateLoading] = useState(false)
   const [message, setMessage] = useState({ text: "", type: "" })
@@ -39,8 +45,12 @@ export default function CreateDiscussion() {
             setUser(userData)
           }
         }
-      } catch (error) {
-        console.error("Error checking authentication:", error)
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.error("Error checking authentication:", error.message)
+        } else {
+          console.error("Error checking authentication:", error)
+        }
       } finally {
         if (isMounted.current) {
           setLoading(false)
@@ -51,7 +61,7 @@ export default function CreateDiscussion() {
     checkAuth()
   }, [])
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
@@ -59,7 +69,7 @@ export default function CreateDiscussion() {
     }))
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
     // Validate form
@@ -78,8 +88,8 @@ export default function CreateDiscussion() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          user_id: user.id,
-          author: user.name,
+          user_id: user?.id,
+          author: user?.name,
           title: formData.title,
           content: formData.content,
         }),
@@ -105,8 +115,12 @@ export default function CreateDiscussion() {
       } else {
         setMessage({ text: result.error || "Failed to create discussion", type: "error" })
       }
-    } catch (error) {
-      console.error("Error creating discussion:", error)
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Error creating discussion:", error.message)
+      } else {
+        console.error("Error creating discussion:", error)
+      }
       setMessage({ text: "An error occurred while creating your discussion", type: "error" })
     } finally {
       if (isMounted.current) {
