@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { Search, Calendar, Loader2, MessageCircle } from "lucide-react"
+import { Search, Calendar, Loader2, MessageCircle, PlusCircle } from "lucide-react"
 
 interface Discussion {
     id: number
@@ -105,8 +105,20 @@ export default function Discussions() {
     return (
         <div className="min-h-screen bg-[#F8F8F8] py-12">
             <div className="container mx-auto px-4">
-                <h1 className="text-4xl font-bold text-[#000100]">Discussions</h1>
-                <p className="text-[#A1A6B4] mt-2">Join the conversation and share your thoughts</p>
+                {/* Header with title and create button */}
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                    <div>
+                        <h1 className="text-4xl font-bold text-[#000100]">Discussions</h1>
+                        <p className="text-[#A1A6B4] mt-2">Join the conversation and share your thoughts</p>
+                    </div>
+                    <Link
+                        href="/discussions/create"
+                        className="mt-4 md:mt-0 px-5 py-3 rounded-lg bg-[#000100] text-[#F8F8F8] font-medium hover:bg-[#A1A6B4] transition-colors duration-200 flex items-center justify-center md:justify-start w-full md:w-auto"
+                    >
+                        <PlusCircle size={18} className="mr-2" />
+                        Start Conversation
+                    </Link>
+                </div>
 
                 <div className="mb-8 max-w-md">
                     <div className="relative">
